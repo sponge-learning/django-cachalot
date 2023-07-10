@@ -141,9 +141,13 @@ def _patch_atomic():
         @wraps(original)
         def inner(self, exc_type, exc_value, traceback):
             needs_rollback = get_connection(self.using).needs_rollback
-            original(self, exc_type, exc_value, traceback)
-            cachalot_caches.exit_atomic(
-                self.using, exc_type is None and not needs_rollback)
+            try:
+                original(self, exc_type, exc_value, traceback)
+            finally:
+                cachalot_caches.exit_atomic(
+                    self.using,
+                    exc_type is None and not needs_rollback
+                )
 
         return inner
 
